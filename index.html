@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A-Frame WebXR Multi-Escena</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-template-component@3.2.1/dist/aframe-template-component.min.js"></script>
+
+    <style>
+      :root { --active-color: #00ff88; --bg-color: rgba(20, 20, 20, 0.7); }
+      body { margin: 0; overflow: hidden; font-family: sans-serif; }
+
+      /* UI flotante adaptada para RA */
+      #ui-overlay {
+        position: absolute;
+        top: 88%;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        width: 90%;
+        height: 10%;
+        max-width: 450px;
+        background: var(--bg-color);
+        padding: 10px;
+        border-radius: 10px;
+        z-index: 2000;        
+      }
+
+      .btn-nav {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: #efefef;
+        padding: 12px 5px;
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .btn-nav span { font-size: 15px; }
+
+      .btn-nav.active {
+        color: var(--active-color);
+        background: rgba(255,255,255,0.05);
+        border-radius: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="ui-overlay">
+      <button
+        class="btn-nav active"
+        onmouseover="updateScene(this, '#escena1')"
+      >
+        <span>🔋</span> cilindro
+      </button>
+      <button class="btn-nav" onmouseover="updateScene(this, '#escena2')">
+        <span>💎</span> octaedro
+      </button>
+      <button class="btn-nav" onmouseover="updateScene(this, '#escena3')">
+        <span>🛰️</span> torus
+      </button>
+    </div>
+
+    <a-scene
+      webxr="optionalFeatures: hit-test, dom-overlay; overlayElement: #ui-overlay;"
+    >
+      <a-assets>
+        <audio
+          id="click-sound"
+          src="https://cdn.aframe.io/360-video-boilerplate/audio/click.mp3"
+          preload="auto"
+        ></audio>
+
+        <script id="escena1" type="text/html">
+          <a-entity class="ar-object">
+            <a-cylinder
+              id="cilindro"
+              position="0 0.7 -2.5"
+              radius="0.5"
+              height="1.5"
+              color="#00ff88"
+              opacity="0.7"
+            >
+            </a-cylinder>
+          </a-entity>
+          <a-light
+            type="spot"
+            ;
+            target="#cilindro"
+            intensity="9.95"
+            position="2 4.205 0"
+          ></a-light>
+        </script>
+
+        <script id="escena2" type="text/html">
+          <a-entity class="ar-object">
+            <a-octahedron
+              id="octaedro"
+              position="0 1 -2.5"
+              radius="0.8"
+              color="#00d4ff"
+              animation="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing:linear"
+            ></a-octahedron>
+            <a-light
+              type="spot"
+              ;
+              target="#octaedro;"
+              intensity="4.1"
+              position="2 2.5 0"
+            ></a-light>
+          </a-entity>
+        </script>
+
+        <script id="escena3" type="text/html">
+          <a-entity class="ar-object">
+            <a-torus-knot
+              id="torus"
+              position="0 1 -2.5"
+              radius="0.5"
+              radius-tubular="0.05"
+              color="#ff0055"
+              animation__1="property: position; to: 0 1.2 -2; dir: alternate; loop: true; dur: 2000"
+              animation__2="property: rotation; to: 0 360 0; loop: true; dur: 15000; easing:linear"
+            ></a-torus-knot>
+            <a-light
+              type="spot"
+              ;
+              target="#torus;"
+              intensity="4.1"
+              position="2 2.5 0"
+            ></a-light>
+          </a-entity>
+        </script>
+      </a-assets>
+
+      <a-entity id="render-target" template="src: #escena1"></a-entity>
+
+      <a-light
+        type="hemisphere"
+        intensity="0.5"
+        light="color: #afa7ec; groundColor: #b8a79d"
+      ></a-light>
+      <a-camera position="0 1.6 0"></a-camera>
+    </a-scene>
+
+    <script>
+      function updateScene(element, templateId) {
+        // Feedback sonoro
+        const sound = document.querySelector('#click-sound');
+        sound.currentTime = 0;
+        sound.play().catch(() => {}); // Evita error si no hay interacción previa
+
+        // Cambio de plantilla
+        document.querySelector('#render-target').setAttribute('template', 'src', templateId);
+
+        // Feedback visual en UI
+        document.querySelectorAll('.btn-nav').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+
+        // Vibración
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    </script>
+  </body>
+</html>
